@@ -1,26 +1,38 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import $ from "jquery";
 import "./App.css";
+import axios from "axios";
 
 function App() {
+  const form = useRef(null);
   const [name, setName] = useState("");
   const [result, setResult] = useState("");
 
-  const handleChange = (e) => {
-    setName(e.target.value);
-  };
-
   const handleSumbit = (e) => {
     e.preventDefault();
-    const form = $(e.target);
-    $.ajax({
-      type: "POST",
-      url: form.attr("action"),
-      data: form.serialize(),
-      success(data) {
-        setResult(data);
-      },
-    });
+    const currentform = form.current;
+    console.log(currentform.name.value);
+
+    axios
+      .post(
+        "http://localhost:8000/server.php",
+        "name=" + currentform.name.value
+      )
+      .then((res) => {
+        setResult(res.data);
+      })
+      .catch((err) => {
+        console.log(err.response);
+      });
+    // $.ajax({
+    //   type: "POST",
+    //   url: currentform.action,
+    //   data: "name=" + currentform.name.value,
+    //   success(data) {
+    //     console.log(data);
+    //     setResult(data);
+    //   },
+    // });
   };
 
   return (
@@ -28,6 +40,7 @@ function App() {
       <form
         action="http://localhost:8000/server.php"
         method="post"
+        ref={form}
         onSubmit={(event) => handleSumbit(event)}
       >
         <label htmlFor="name">Name: </label>
@@ -36,7 +49,7 @@ function App() {
           id="name"
           name="name"
           value={name}
-          onChange={(event) => handleChange(event)}
+          onChange={(event) => setName(event.target.value)}
         />
         <br />
         <button type="submit">Submit</button>
